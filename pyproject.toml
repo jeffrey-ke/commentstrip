@@ -1,0 +1,15 @@
+[project]
+name = "commentstrip"
+version = "0.1.0"
+description = "Losslessly strip Python comments and docstring-like statements via libcst; every other byte is untouched."
+readme = "README.md"
+authors = [{ name = "Jeffrey Ke", email = "jeffke613@gmail.com" }]
+requires-python = ">=3.11"
+dependencies = ["libcst"]
+
+[project.scripts]
+commentstrip = "commentstrip.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11.6,<0.12.0"]
+build-backend = "uv_build"

@@ -22,13 +22,29 @@ Python.
 ## CLI usage
 
 ```
-uv run commentstrip file.py [file2.py ...]       # prints stripped bytes to stdout
-uv run commentstrip -i file.py [file2.py ...]     # strips in place
+uv run commentstrip file.py [file2.py ...]                  # list matches, grep -n style
+uv run commentstrip --remove file.py [file2.py ...]          # strip in place
+uv run commentstrip --remove --dry-run file.py [file2.py ...]  # preview a --remove, write nothing
 ```
 
-By default the transformed bytes are written to `sys.stdout.buffer` and the input files are left
-untouched. Pass `-i`/`--in-place` to overwrite each file instead (same convention as `black`/
-`autopep8`).
+Three modes:
+
+- **No flags** — for each file, list every comment/comment-like match it contains, one line per
+  physical line the match spans, `grep -n` style: `path:line: matched text`. Nothing is written to
+  disk.
+- **`--remove`** — strip each file and overwrite it in place, then print one summary line per file:
+  `path: removed N comment(s)`. Does not print the match listing.
+- **`--remove --dry-run`** — preview a `--remove` without writing anything: prints the same
+  match listing as the no-flags mode, followed by `path: would remove N comment(s) (dry run,
+  nothing written)`.
+
+`--dry-run` without `--remove` is a usage error (there is nothing to preview) and exits 2 with a
+usage message.
+
+Exit codes follow `grep` convention: `0` if at least one match was found across all files
+processed, `1` if zero matches were found anywhere (and no errors occurred), `2` if any file
+couldn't be read — in that case the error is printed to stderr and the remaining files are still
+processed, but the run still exits `2` overall.
 
 ## Caveats
 

@@ -159,6 +159,13 @@ class _CommentStripper(cst.CSTTransformer):
         if hasattr(node, "leading_lines"):
             node = node.with_changes(leading_lines=())
 
+        # A dropped small-statement (case 3/4) that isn't last on its semicolon-joined line still
+        # carries its own explicit `; ` separator (e.g. the "comment" in `"comment"; x = 1`) — that
+        # punctuation belongs to the surrounding statement, not to the matched text. Zero it the
+        # same way _apply_small_stmt_mask already does for a *surviving* last item.
+        if hasattr(node, "semicolon"):
+            node = node.with_changes(semicolon=cst.MaybeSentinel.DEFAULT)
+
         text = indent + self._tree.code_for_node(node)
 
         # A whole SimpleStatementLine (case 5/6) renders its own trailing line terminator as part

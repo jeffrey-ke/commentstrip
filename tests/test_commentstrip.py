@@ -88,25 +88,26 @@ def test_find_comments_function_docstring_is_one_match_not_two():
 
 
 def test_find_comments_semicolon_code_then_comment_drops_only_the_string():
-    # `x = 1; "comment"` — only the string is comment-like; `x = 1` must never appear in the match.
+    # `x = 1; "comment"` — only the string is comment-like; `x = 1` must never appear in the match,
+    # and (it's already last on the line) no dangling `; ` separator either.
     before = (FIXTURES / "semicolon_code_then_comment_before.py").read_bytes()
     matches = find_comments(before)
     assert len(matches) == 1
     match = matches[0]
     assert match.start_line == match.end_line == 1
-    assert "x = 1" not in match.text
-    assert '"comment"' in match.text
+    assert match.text == '"comment"'
 
 
 def test_find_comments_semicolon_comment_then_code_drops_only_the_string():
-    # `"comment"; x = 1` — same, with the string first on the line this time.
+    # `"comment"; x = 1` — same, with the string first on the line this time. It's NOT last on the
+    # line, so it owns an explicit `; ` separator in the CST — that punctuation belongs to the
+    # surrounding statement, not the matched text, so it must not leak into match.text either.
     before = (FIXTURES / "semicolon_comment_then_code_before.py").read_bytes()
     matches = find_comments(before)
     assert len(matches) == 1
     match = matches[0]
     assert match.start_line == match.end_line == 1
-    assert "x = 1" not in match.text
-    assert '"comment"' in match.text
+    assert match.text == '"comment"'
 
 
 def test_find_comments_multiline_docstring_spans_and_round_trips():
